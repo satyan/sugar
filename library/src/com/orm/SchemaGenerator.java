@@ -95,7 +95,9 @@ public class SchemaGenerator {
             String line;
             while ((line = reader.readLine()) != null) {
                 Log.i("Sugar script", line);
-                db.execSQL(line.toString());
+                if(!line.toString().startsWith("-- ")){ // Not a comment
+                    db.execSQL(line.toString());
+                }
             }
         } catch (IOException e) {
             Log.e("Sugar", e.getMessage());
