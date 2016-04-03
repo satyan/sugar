@@ -12,11 +12,13 @@ import android.widget.TextView;
 import com.example.models.SimpleModel;
 import com.orm.query.Select;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import static com.orm.SugarRecord.save;
 import static junit.framework.Assert.assertNotSame;
@@ -25,6 +27,11 @@ import static junit.framework.Assert.assertSame;
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(sdk=18)
 public class CursorTests {
+    @Before
+    public void setUp() throws Exception {
+        ShadowLog.stream = System.out;
+        //you other setup here
+    }
     @Test
     public void testColumnNames() {
         save(new SimpleModel());

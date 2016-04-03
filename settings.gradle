@@ -1,2 +1,3 @@
 include ':library'
 include ':example'
+rootProject.name = 'sugar'

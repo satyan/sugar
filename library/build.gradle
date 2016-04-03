@@ -1,6 +1,14 @@
 apply plugin: 'com.android.library'
 apply from: '../maven_push.gradle'
 
+// https://docs.gradle.org/current/userguide/publishing_maven.html
+// http://www.flexlabs.org/2013/06/using-local-aar-android-library-packages-in-gradle-builds
+apply plugin: 'maven-publish'
+
+
+version '2.0.0-SNAPSHOT'
+group 'com.github.satyan'
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
@@ -16,14 +24,44 @@ android {
         }
     }
 
-    testOptions{
+    testOptions {
         unitTests.returnDefaultValues = true
     }
 
-    lintOptions{
+    lintOptions {
         abortOnError false
     }
 }
+
+// This configuration is used to publish the library to a local repo while a being forked and modified.
+// It should really be set up so that the version are all in line, and set to be a SNAPSHOT.
+// The version listed here is a temp hack to allow me to keep working.
+android.libraryVariants
+publishing {
+    publications {
+        maven(MavenPublication) {
+
+            groupId 'com.github.satyan'
+            artifactId 'sugar'
+            version '2.0.0-SNAPSHOT'
+
+            artifact bundleRelease
+        }
+    }
+}
+
+//publishing {
+//    publications {
+//        maven(MavenPublication) {
+//            groupId 'org.gradle.sample'
+//            artifactId 'project1-sample'
+//            version '1.1'
+//
+//            from components.java
+//        }
+//    }
+//}
+
 
 dependencies {
     testCompile 'junit:junit:4.12'
@@ -32,7 +70,7 @@ dependencies {
 task libraryJar(type: Jar) {
     dependsOn assembleRelease
     from android.sourceSets.main.java.srcDirs,
-         ['build/intermediates/classes/release/'] // Add the release classes into the jar
+            ['build/intermediates/classes/release/'] // Add the release classes into the jar
     baseName 'sugar'
 }
 

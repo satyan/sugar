@@ -1,23 +1,57 @@
-package com.orm;
+package com.orm.helper;
 
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
+import android.database.sqlite.SQLiteException;
 
-import com.orm.helper.SugarDatabaseHelper;
-import com.orm.util.SugarCursorFactory;
+import com.orm.Configuration;
 
-public class SugarDb extends SQLiteOpenHelper {
+/**
+ * Created by bpappin on 16-03-29.
+ */
+public abstract class SugarDatabaseHelper {
+	private Configuration configuration;
 
-	private final SugarDatabaseHelper databaseHelper;
-	private SQLiteDatabase sqLiteDatabase;
-	private int openedConnections = 0;
+	public SugarDatabaseHelper(Configuration configuration) {
+		super();
+		setConfiguration(configuration);
+	}
 
-	public SugarDb(Configuration configuration) {
-		super(configuration.getContext(), configuration.getDatabaseName(),
-				new SugarCursorFactory(configuration.isDebug()), configuration
-				.getDatabaseVersion());
-		databaseHelper = configuration.getDatabaseHelper();
+	/**
+	 * If this constructor is used, you *must* call setConfiguration(Configuration) before any
+	 * other
+	 * operations is performed.
+	 */
+	public SugarDatabaseHelper() {
+		this(null);
+	}
+
+	public void setConfiguration(Configuration configuration) {
+		this.configuration = configuration;
+	}
+
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	/**
+	 * Called when the database connection is being configured, to enable features
+	 * such as write-ahead logging or foreign key support.
+	 * <p>
+	 * This method is called before {@link #onCreate}, {@link #onUpgrade},
+	 * {@link #onDowngrade}, or {@link #onOpen} are called.  It should not modify
+	 * the database except to configure the database connection as required.
+	 * </p><p>
+	 * This method should only call methods that configure the parameters of the
+	 * database connection, such as {@link SQLiteDatabase#enableWriteAheadLogging}
+	 * {@link SQLiteDatabase#setForeignKeyConstraintsEnabled},
+	 * {@link SQLiteDatabase#setLocale}, {@link SQLiteDatabase#setMaximumSize},
+	 * or executing PRAGMA statements.
+	 * </p>
+	 *
+	 * @param db
+	 * 		The database.
+	 */
+	public void onConfigure(SQLiteDatabase db) {
 	}
 
 	/**
@@ -27,10 +61,7 @@ public class SugarDb extends SQLiteOpenHelper {
 	 * @param db
 	 * 		The database.
 	 */
-	@Override
-	public void onCreate(SQLiteDatabase db) {
-		databaseHelper.onCreate(db);
-	}
+	public abstract void onCreate(SQLiteDatabase db);
 
 	/**
 	 * Called when the database needs to be upgraded. The implementation
@@ -55,33 +86,7 @@ public class SugarDb extends SQLiteOpenHelper {
 	 * @param newVersion
 	 * 		The new database version.
 	 */
-	@Override
-	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		databaseHelper.onUpgrade(db, oldVersion, newVersion);
-	}
-
-
-	/**
-	 * Called when the database connection is being configured, to enable features
-	 * such as write-ahead logging or foreign key support.
-	 * <p>
-	 * This method is called before {@link #onCreate}, {@link #onUpgrade},
-	 * {@link #onDowngrade}, or {@link #onOpen} are called.  It should not modify
-	 * the database except to configure the database connection as required.
-	 * </p><p>
-	 * This method should only call methods that configure the parameters of the
-	 * database connection, such as {@link SQLiteDatabase#enableWriteAheadLogging}
-	 * {@link SQLiteDatabase#setForeignKeyConstraintsEnabled},
-	 * {@link SQLiteDatabase#setLocale}, {@link SQLiteDatabase#setMaximumSize},
-	 * or executing PRAGMA statements.
-	 * </p>
-	 *
-	 * @param db
-	 * 		The database.
-	 */
-	public void onConfigure(SQLiteDatabase db) {
-		databaseHelper.onConfigure(db);
-	}
+	public abstract void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion);
 
 	/**
 	 * Called when the database needs to be downgraded. This is strictly similar to
@@ -104,7 +109,8 @@ public class SugarDb extends SQLiteOpenHelper {
 	 * 		The new database version.
 	 */
 	public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		databaseHelper.onDowngrade(db, oldVersion, newVersion);
+		throw new SQLiteException("Can't downgrade database from version " +
+								  oldVersion + " to " + newVersion);
 	}
 
 	/**
@@ -122,31 +128,5 @@ public class SugarDb extends SQLiteOpenHelper {
 	 * 		The database.
 	 */
 	public void onOpen(SQLiteDatabase db) {
-		databaseHelper.onOpen(db);
-	}
-
-	public synchronized SQLiteDatabase getDB() {
-		if (this.sqLiteDatabase == null) {
-			this.sqLiteDatabase = getWritableDatabase();
-		}
-
-		return this.sqLiteDatabase;
-	}
-
-	@Override
-	public synchronized SQLiteDatabase getReadableDatabase() {
-		Log.d("TAG", "getReadableDatabase");
-		openedConnections++;
-		return super.getReadableDatabase();
-	}
-
-	@Override
-	public synchronized void close() {
-		Log.d("TAG", "getReadableDatabase");
-		openedConnections--;
-		if (openedConnections == 0) {
-			Log.d("TAG", "closing");
-			super.close();
-		}
 	}
 }

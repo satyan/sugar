@@ -24,10 +24,10 @@ android {
 }
 
 dependencies {
-    compile project (':library')
     compile 'com.android.support:appcompat-v7:23.1.1'
     testCompile 'org.robolectric:robolectric:3.0'
     testCompile 'junit:junit:4.12'
+    compile project(':library')
 }
 
 //robolectric {

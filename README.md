@@ -175,7 +175,109 @@ books.add(new Book("isbn789", "Title here 3", "4nd edition"))
 SugarRecord.saveInTx(books);
 ```
 
-### When using ProGuard
+# Using the ContentProvider for the CursorLoader
+
+Content providers are vital when using CursorLoaders and SyncAdapters, this modification adds a ContentProvider to work with those systems.
+
+###Modify the manifest
+
+The names of the manifest meta properties have change in this version to avoid conflicts with other libraries.
+
+```xml
+<application ...>
+	
+<meta-data android:name="SUGAR_DATABASE" android:value="sugar.db"/>
+<meta-data android:name="SUGAR_VERSION" android:value="114"/>
+<meta-data android:name="SUGAR_QUERY_LOG" android:value="true"/>
+<meta-data android:name="SUGAR_DOMAIN_PACKAGE_NAME" android:value="my.model.package"/>
+
+<!-- Enable this for legacy compatibility with Sugar 1.5 or earlier. -->
+<!-- <meta-data android:name="SUGAR_ID_COLUMN_NAME" android:value="id"/> -->
+
+<!-- the name of the authority should be the same as the one use in the provider definition. -->
+<meta-data android:name="SUGAR_AUTHORITY" android:value="my.content.authority"/> 
+<!-- This changes the behaviour of the schema generator. If removed, the legacy behaviour will be used. -->
+<!-- This version drops all tables and recreates them during a database version upgrade or downgrade.
+	Most applicaitons that use sync adapters and/or store their data in the cloud, do not need the 
+	complexity of migration. -->
+<meta-data android:name="SUGAR_SCHEMA_HELPER_CLASS" android:value="com.orm.helper.DropTableSchemaGenerator"/>
+
+<!-- the authirity listed for the content provider should match the one set inthe meta configuration tag. -->
+<provider
+	android:name="com.orm.SugarContentProvider"
+	android:authorities="my.content.authority"
+	android:exported="false"/>
+	
+</application>
+```
+### Setting up a CursorLoader
+
+This version changes the default ID column name from "id" to the standard "_id" (as defined by android.provider.BaseColumns._ID).
+The ID column name change is important because several built in components of SimpleCursorAdapter expect the _id column to have a specific name.
+
+```java
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+		// Note that these are column names, not pojo properties.
+		String select = "col1 = ? AND col2 = ? AND col3 != ?";
+		String[] selectArgs = {
+				"value1",
+				"value2",
+				"value3"
+		};
+		String orderBy = "col1 DESC, col2 ASC";
+
+		// Note that we currently don't need the projection, however this may not 
+		// always be true since we don't need to load entire Pojo's into memory.
+		String[] projection = null;
+
+		final Uri uri = SugarContentProvider.createUri(CxOrganization.class, null);
+
+		return new CursorLoader(context, uri, projection, null, null, orderBy);
+	}
+```
+
+## Tips for using CursorLoader
+
+When setting up your POJO with annotations, create an interface that contains 
+the names of the columns for the annotations. This will allow you to refere to and refactor later.
+
+```java
+interface Columns {
+	String NAME = "col_name";
+	String ORDER = "col_order";
+}
+
+@Table("my_pojo")
+public class MyPojo {
+	@Column(name = Columns.NAME)
+	private String name;
+	
+	@Column(name = Columns.ORDER)
+	private int order;
+}
+
+```
+
+Setting up the columns that way will ensure you don't get a typo and the column names can be used in quiery builders.
+
+You can also use the column names when setting up your SimpleCursorAdapter.
+
+```java
+	// code fragment found when initializing a ListView.
+	adapter = new SimpleCursorAdapter(getActivity(),
+				R.layout.my_list_item, null,
+				new String[]{
+						Columns.NAME,
+						Columns.ORDER
+				},
+				new int[]{
+						R.id.name,
+						R.id.order
+				}, 0);
+```
+
+# When using ProGuard
 ```java
 # Ensures entities remain un-obfuscated so table and columns are named correctly
 -keep class com.yourpackage.yourapp.domainclasspackage.** { *; }

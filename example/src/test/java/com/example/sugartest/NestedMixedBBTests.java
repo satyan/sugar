@@ -5,9 +5,11 @@ import com.example.models.RelationshipMixedBModel;
 import com.example.models.SimpleExtendedModel;
 import com.orm.SugarRecord;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 
 import java.util.List;
 
@@ -18,6 +20,11 @@ import static org.junit.Assert.assertEquals;
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(sdk=18)
 public class NestedMixedBBTests {
+    @Before
+    public void setUp() throws Exception {
+        ShadowLog.stream = System.out;
+        //you other setup here
+    }
     @Test
     public void emptyDatabaseTest() throws Exception {
         assertEquals(0L, SugarRecord.count(NestedMixedBBModel.class));
