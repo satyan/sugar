@@ -1,13 +1,13 @@
 apply plugin: 'com.android.library'
-apply from: '../maven_push.gradle'
+//apply from: '../maven_push.gradle'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
 
     defaultConfig {
-        minSdkVersion 9
-        targetSdkVersion 23
+        minSdkVersion 16
+        targetSdkVersion 28
     }
     buildTypes {
         release {
@@ -20,15 +20,18 @@ android {
     lintOptions {
         abortOnError false
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    testCompile 'junit:junit:4.12'
-    testCompile 'org.robolectric:robolectric:3.0'
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.robolectric:robolectric:3.0'
 }
 
 task libraryJar(type: Jar) {
-    dependsOn assembleRelease
     from android.sourceSets.main.java.srcDirs,
          ['build/intermediates/classes/release/'] // Add the release classes into the jar
     baseName 'sugar'

@@ -184,6 +184,29 @@ public class SugarRecord {
         return new CursorIterator<>(type, cursor);
     }
 
+    public static <T> List<Long>  findIds(Class<T> type, String whereClause, String... whereArgs) {
+        return findIds(type, whereClause, whereArgs, null, null, null);
+    }
+
+    public static <T> List<Long> findIds(Class<T> type, String whereClause, String[] whereArgs, String groupBy, String orderBy, String limit) {
+        List<Long> result = new ArrayList<>( );
+
+        Cursor cursor = getSugarDataBase().query(NamingHelper.toTableName(type), new String[]{"id"}, whereClause, whereArgs,
+                groupBy, null, orderBy, limit);
+        if ( cursor.moveToFirst() )
+        {
+            do
+            {
+                result.add( cursor.getLong(0) );
+            }
+            while (cursor.moveToNext());
+        }
+
+        cursor.close( );
+
+        return result;
+    }
+
     public static <T> List<T> find(Class<T> type, String whereClause, String... whereArgs) {
         return find(type, whereClause, whereArgs, null, null, null);
     }
@@ -229,8 +252,7 @@ public class SugarRecord {
         try {
             while (cursor.moveToNext()) {
                 entity = type.getDeclaredConstructor().newInstance();
-                new EntityInflater()
-                        .withCursor(cursor)
+                new EntityInflater().withCursor(cursor)
                         .withObject(entity)
                         .withEntitiesMap(getSugarContext().getEntitiesMap())
                         .withRelationFieldName(relationFieldName)
@@ -282,7 +304,7 @@ public class SugarRecord {
     }
 
     public static <T> long sum(Class<T> type, String field) {
-        return sum(type, field, null, null);
+        return sum(type, field, null, (String) null );
     }
 
     public static <T> long sum(Class<T> type, String field, String whereClause, String... whereArgs) {

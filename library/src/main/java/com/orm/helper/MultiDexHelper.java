@@ -5,10 +5,12 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -79,6 +81,14 @@ public final class MultiDexHelper {
             }
         }
 
+        // handle split files built by instant run
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            String[] splitSourceDirs = applicationInfo.splitSourceDirs;
+            if ((splitSourceDirs!=null) && (splitSourceDirs.length > 0)) {
+                sourcePaths.addAll(Arrays.asList(splitSourceDirs));
+            }
+        }
+
         return sourcePaths;
     }
 
@@ -105,7 +115,10 @@ public final class MultiDexHelper {
                     classNames.add(dexEntries.nextElement());
                 }
             } catch (IOException e) {
-                throw new IOException("Error at loading dex file '" + path + "'");
+                Log.e( "MultiDexHelper", "Error at loading dex file '" + path + "'");
+                Log.e( "MultiDexHelper", e.getMessage() );
+
+               // throw new IOException("Error at loading dex file '" + path + "'");
             }
         }
         return classNames;

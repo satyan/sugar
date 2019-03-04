@@ -25,8 +25,11 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public final class ReflectionUtil {
 
@@ -320,6 +323,11 @@ public final class ReflectionUtil {
             for (String classString : allClasses) {
                 if (classString.startsWith(packageName)) classNames.add(classString);
             }
+
+            // remove duplicates
+            Set<String> hs = new LinkedHashSet<>(classNames);
+            classNames.clear();
+            classNames.addAll(hs);
         } catch (NullPointerException e) {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             Enumeration<URL> urls = classLoader.getResources("");
